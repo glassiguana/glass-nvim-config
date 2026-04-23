@@ -9,33 +9,18 @@ require('mason').setup({
 })
 
 require('mason-lspconfig').setup({
-    -- A list of servers to automatically install if they're not already installed
-    ensure_installed = { 'pylsp', 'lua_ls', 'rust_analyzer', 'clangd', 'html', 'cssls', 'bashls', 'jsonls'},
+    ensure_installed = { 'pylsp', 'lua_ls', 'rust_analyzer', 'clangd', 'html', 'cssls', 'bashls', 'jsonls' },
 })
 
-
--- Set different settings for different languages' LSP
--- LSP list: https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md
--- How to use setup({}): https://github.com/neovim/nvim-lspconfig/wiki/Understanding-setup-%7B%7D
---     - the settings table is sent to the LSP
---     - on_attach: a lua callback function to run after LSP attaches to a given buffer
-local lspconfig = require('lspconfig')
-
--- Customized on_attach function
--- See `:help vim.diagnostic.*` for documentation on any of the below functions
+-- Diagnostic keymaps (global)
 local opts = { noremap = true, silent = true }
 vim.keymap.set('n', '<space>e', vim.diagnostic.open_float, opts)
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, opts)
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, opts)
 vim.keymap.set('n', '<space>q', vim.diagnostic.setloclist, opts)
 
--- Use an on_attach function to only map the following keys
--- after the language server attaches to the current buffer
+-- on_attach: keymaps set when LSP attaches to a buffer
 local on_attach = function(client, bufnr)
-    -- Enable completion triggered by <c-x><c-o>
-    vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
-
-    -- See `:help vim.lsp.*` for documentation on any of the below functions
     local bufopts = { noremap = true, silent = true, buffer = bufnr }
     vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, bufopts)
     vim.keymap.set('n', 'gd', vim.lsp.buf.definition, bufopts)
@@ -51,25 +36,27 @@ local on_attach = function(client, bufnr)
     vim.keymap.set('n', '<space>rn', vim.lsp.buf.rename, bufopts)
     vim.keymap.set('n', '<space>ca', vim.lsp.buf.code_action, bufopts)
     vim.keymap.set('n', 'gr', vim.lsp.buf.references, bufopts)
-    vim.keymap.set("n", "<space>f", function()
+    vim.keymap.set('n', '<space>f', function()
         vim.lsp.buf.format({ async = true })
     end, bufopts)
 end
 
--- Configure each language
--- How to add LSP for a specific language?
--- 1. use `:Mason` to install corresponding LSP
--- 2. add configuration below
-lspconfig.pylsp.setup({
-	on_attach = on_attach,
+-- Attach on_attach via LspAttach autocmd
+vim.api.nvim_create_autocmd('LspAttach', {
+    callback = function(args)
+        local client = vim.lsp.get_client_by_id(args.data.client_id)
+        on_attach(client, args.buf)
+    end,
 })
 
-lspconfig.lua_ls.setup({
-    on_attach = on_attach,
+-- LSP configs
+vim.lsp.config('pylsp', {})
+
+vim.lsp.config('lua_ls', {
     settings = {
         Lua = {
             runtime = { version = 'LuaJIT' },
-            diagnostics = { globals = { 'vim' } },  -- stops "vim is undefined" errors
+            diagnostics = { globals = { 'vim' } },
             workspace = {
                 library = vim.api.nvim_get_runtime_file("", true),
                 checkThirdParty = false,
@@ -79,34 +66,31 @@ lspconfig.lua_ls.setup({
     },
 })
 
-lspconfig.rust_analyzer.setup({
-    on_attach = on_attach,
+vim.lsp.config('rust_analyzer', {
     settings = {
         ['rust-analyzer'] = {
-            checkOnSave = { command = 'clippy' },  -- richer lint warnings than default
+            checkOnSave = { command = 'clippy' },
             cargo = { allFeatures = true },
         },
     },
 })
 
-lspconfig.clangd.setup({
-    on_attach = on_attach,
-})
+vim.lsp.config('clangd', {})
+vim.lsp.config('html', {})
+vim.lsp.config('cssls', {})
+vim.lsp.config('bashls', {})
 
-lspconfig.html.setup({ on_attach = on_attach })
-
-lspconfig.cssls.setup({ on_attach = on_attach })
-
-lspconfig.bashls.setup({ on_attach = on_attach })
-
-lspconfig.jdtls.setup({ on_attach = on_attach })
-
-lspconfig.jsonls.setup({
-    on_attach = on_attach,
+vim.lsp.config('jsonls', {
     settings = {
         json = {
             schemas = require('schemastore').json.schemas(),
             validate = { enable = true },
         },
     },
+})
+
+-- Enable all configured servers
+vim.lsp.enable({
+    'pylsp', 'lua_ls', 'rust_analyzer', 'clangd',
+    'html', 'cssls', 'bashls', 'jsonls'
 })

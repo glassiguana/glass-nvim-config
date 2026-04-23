@@ -13,13 +13,14 @@ vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
 
-  -- Colorscheme
-  {
-    "ellisonleao/gruvbox.nvim",
-    priority = 1000,
-    config = true,
-    opts = ...,
-  },
+  -- Colorschemes
+  { "ellisonleao/gruvbox.nvim", priority = 1000 },
+  { "Mofiqul/dracula.nvim", priority = 1000 },
+  { "folke/tokyonight.nvim", priority = 1000 },
+  { "shaunsingh/nord.nvim", priority = 1000 },
+  { "rebelot/kanagawa.nvim", priority = 1000 },
+  { "neanias/everforest-nvim", priority = 1000 },
+  { "catppuccin/nvim", name = "catppuccin", priority = 1000 },
 
   -- LSP & Completion
   {
@@ -69,11 +70,64 @@ require("lazy").setup({
       "nvim-tree/nvim-web-devicons",
     },
     config = function()
-      require("dashboard").setup {
-        -- config
-      }
+      require("config.dashboard")
     end,
   },
+
+    -- Fuzzy Finder
+  {
+    "nvim-telescope/telescope.nvim",
+    tag = "0.1.8",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    config = function()
+        require("telescope").setup {
+            defaults = {
+                preview = {
+                    treesitter = false,
+                },
+            },
+        }
+    end,
+},
+
+{
+    --Treesitter
+    "nvim-treesitter/nvim-treesitter",
+    event = "VeryLazy",
+    build = ":TSUpdate",
+    config = function()
+        require("nvim-treesitter.config").setup {
+            ensure_installed = { "c", "lua", "vim", "vimdoc", "python", "javascript" },
+            auto_install = true,
+            highlight = { enable = true },
+            indent = { enable = true },
+        }
+    end,
+},
+
+  --Lualine
+  {
+"nvim-lualine/lualine.nvim",
+  dependencies = { "nvim-tree/nvim-web-devicons" },
+  config = function()
+    require("lualine").setup {
+      options = {
+        theme = "auto",
+      },
+    }
+  end,
+},
+
+    --Claude Code
+{
+    "greggh/claude-code.nvim",
+    dependencies = {
+        "nvim-lua/plenary.nvim",
+    },
+    config = function()
+        require("claude-code").setup()
+    end,
+},
 
 })
 

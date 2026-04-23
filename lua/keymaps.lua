@@ -28,3 +28,9 @@ vim.keymap.set('n', '<C-Right>', ':vertical resize +2<CR>', opts)
 -----------------
 vim.keymap.set('v', '<', '<gv', opts)
 vim.keymap.set('v', '>', '>gv', opts)
+
+-- CodeCompanion
+vim.keymap.set('n', '<leader>c', ':ClaudeCode<CR>', opts)
+
+-- NvimTree--
+vim.keymap.set('n', '<leader>t', ':NvimTreeToggle<CR>', opts)
